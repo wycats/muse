@@ -1,3 +1,4 @@
+require "muse/preprocessor"
 require "flying_saucer/rufo"
 require "maruku"
 
