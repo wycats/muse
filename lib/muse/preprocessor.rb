@@ -17,57 +17,77 @@ module Muse
   end
 
   class Parser
-    class Document
-      attr_accessor :ast, :tags, :refs
-
-      def initialize
-        @ast, @tags, @refs = [], Hash.new(0), []
-      end
-
-      def <<(node)
-        node.document = self
-        @ast << node
-      end
-
-      def render(options)
-        result = ""
-        ast.each do |node|
-          result << node.to_html(options)
+    module Nodes
+      class Node < Struct.new(:document, :children)
+        def initialize document = nil, children = []
+          super
         end
-        result
+
+        def << node
+          node.document = document
+          self.children << node
+        end
       end
-    end
 
-    def self.Node(*attrs)
-      attrs << :document
-      Struct.new(*attrs)
-    end
+      class Document < Node
+        attr_accessor :tags, :refs
 
-    class StringNode < Node(:string)
-      def to_html(options)
-        string
+        def initialize
+          super
+          self.document = self
+          @tags, @refs = Hash.new(0), []
+        end
+
+        def render(options)
+          children.map { |node| node.to_html(options) }.join
+        end
       end
-    end
 
-    class RefNode < Node(:type, :name)
-      def to_html(options)
-        raise InvalidReference unless document.refs.include?(name)
-        ""
+      class String < Node
+        def initialize string
+          super()
+          @string = string
+        end
+
+        def to_html opts = {}
+          @string
+        end
       end
-    end
 
-    class TagNode < Node(:type, :number, :name, :body)
-      def to_html(options)
-        text = "#{type.capitalize} #{options[:chapter]}.#{number}"
-        result = "<img src='#{options[:root]}/#{name}' />\n" \
-        "<p class='#{type} title'><a name='#{options[:chapter]}-#{name}'>#{text}</a>"
-        result << " #{body}" if body
-        result << "</p>"
+      class Ref < Node
+        attr_reader :name, :body
+        def initialize name, body
+          super()
+          @name = name
+          @body = body
+        end
+
+        def to_html(options)
+          raise InvalidReference unless document.refs.include?(name)
+          ""
+        end
+      end
+
+      class Tag < Ref
+        attr_reader :number, :token_type
+        def initialize name, body, number, token_type
+          super(name, body)
+          @number     = number
+          @token_type = token_type
+        end
+
+        def to_html(options)
+          text = "#{token_type.capitalize} #{options[:chapter]}.#{number}"
+          result = "<img src='#{options[:root]}/#{name}' />\n" \
+          "<p class='#{token_type} title'><a name='#{options[:chapter]}-#{name}'>#{text}</a>"
+          result << " #{body}" if body
+          result << "</p>"
+        end
       end
     end
 
     def initialize(tokens)
-      @document = Document.new
+      @document = Nodes::Document.new
       @tokens = tokens.dup
     end
 
@@ -75,15 +95,15 @@ module Muse
       while token = @tokens.shift
         case token
         when Tokenizer::TkString
-          @document << StringNode.new(token)
+          @document << Nodes::String.new(token)
         when Tokenizer::TkTag
           if token.type == "ref"
-            node = RefNode.new(token.name, token.body)
+            node = Nodes::Ref.new(token.name, token.body)
             @document << node
             @document.refs << node
           else
             number = (@document.tags[token] += 1)
-            @document << TagNode.new(token.type, number, token.name, token.body)
+            @document << Nodes::Tag.new(token.name, token.body, number, token.type)
           end
         end
       end
