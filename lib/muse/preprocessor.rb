@@ -111,6 +111,8 @@ module Muse
     end
   end
 
+  require 'strscan'
+
   class Tokenizer
     class TkString < String
     end
@@ -119,39 +121,35 @@ module Muse
     end
 
     def initialize(string)
-      @string   = string.dup
-      @tokens   = [TkString.new]
-    end
-
-    def tokenize
-      while char = getchar
-        if char == ?< && (match = special_tag)
-          push_tag_token(match)
-        else
-          current_token << char
-        end
-      end
-      @tokens
+      @scanner  = StringScanner.new(string.dup)
+      @tokens   = []
     end
 
     TAGS = "figure"
 
-    def special_tag
-      @string.match(/(#{TAGS}):([^>]+?)(?::"((?:[^"]|\\\")+)")?>/)
-    end
+    def tokenize
+      tag = /<(#{TAGS}):[^:>]*(:[^>]*)?>/
+      tks = TkString.new
 
-    def push_tag_token(match)
-      @string.slice!(0, match[0].size)
-      @tokens << TkTag.new(match[1], match[2], match[3])
-      @tokens << TkString.new
-    end
+      until @scanner.eos? do
+        case
+        when text = @scanner.scan(tag)
+          @tokens << tks
+          type, name, body = *text.gsub(/(^<|>$)/, '').split(':', 3)
+          body.gsub!(/(^['"]|['"]$)/, '') if body
 
-    def current_token
-      @tokens.last
-    end
+          @tokens << TkTag.new(type, name, body)
+          tks = TkString.new
+          next
+        when text = @scanner.scan(/./)
+          tks << text
+          next
+        end
+      end
 
-    def getchar
-      @string.slice!(0)
+      @tokens << tks unless tks.empty?
+
+      @tokens
     end
   end
 end
