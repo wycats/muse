@@ -19,11 +19,11 @@ module Muse
   class Parser
     module Nodes
       class Node < Struct.new(:document, :children)
-        def initialize document = nil, children = []
+        def initialize(document = nil, children = [])
           super
         end
 
-        def << node
+        def <<(node)
           node.document = document
           self.children << node
         end
@@ -44,7 +44,7 @@ module Muse
       end
 
       class String < Node
-        def initialize string
+        def initialize(string)
           super()
           @string = string
         end
@@ -56,7 +56,7 @@ module Muse
 
       class Ref < Node
         attr_reader :name, :body
-        def initialize name, body
+        def initialize(name, body)
           super()
           @name = name
           @body = body
@@ -70,7 +70,7 @@ module Muse
 
       class Tag < Ref
         attr_reader :number, :token_type
-        def initialize name, body, number, token_type
+        def initialize(name, body, number, token_type)
           super(name, body)
           @number     = number
           @token_type = token_type
