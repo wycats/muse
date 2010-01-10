@@ -1,4 +1,6 @@
 vendor/gems/*
 !vendor/gems/cache/
+muse-*.gem
+muse.specification
 bin
 .DS_Store
