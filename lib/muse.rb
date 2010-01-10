@@ -1,13 +1,15 @@
 require "muse/preprocessor"
-require "flying_saucer/rufo"
 require "maruku"
 
-class Muse
+module Muse
+  VERSION = "0.5.0"
+
   def initialize(string, css = "")
     @string, @css = Maruku.new(string).to_html, css
   end
 
-  def to_pdf
+  def self.to_pdf
+    require "flying_saucer/rufo"
     ITextRenderer.new.make_pdf(@string)
   end
 end
