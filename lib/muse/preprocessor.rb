@@ -35,7 +35,7 @@ module Muse
         def initialize
           super
           self.document = self
-          @tags, @refs = Hash.new(0), []
+          @tags, @refs = Hash.new {|h,k| h[k] = [] }, []
         end
 
         def render(options)
@@ -62,9 +62,13 @@ module Muse
           @body = body
         end
 
+        def associated_tag
+          @tag ||= document.tags[name].find {|t| t.name == body }
+        end
+
         def to_html(options)
-          raise InvalidReference unless document.refs.include?(name)
-          ""
+          raise InvalidReference unless associated_tag
+          "#{name.capitalize} #{options[:chapter]}.#{associated_tag.number}"
         end
       end
 
@@ -102,11 +106,14 @@ module Muse
             @document << node
             @document.refs << node
           else
-            number = (@document.tags[token] += 1)
-            @document << Nodes::Tag.new(token.name, token.body, number, token.type)
+            number = (@document.tags[token.type].size + 1)
+            node = Nodes::Tag.new(token.name, token.body, number, token.type)
+            @document << node
+            @document.tags[token.type] << node
           end
         end
       end
+
       @document
     end
   end
@@ -125,7 +132,7 @@ module Muse
       @tokens   = []
     end
 
-    TAGS = "figure"
+    TAGS = "ref|figure"
 
     def tokenize
       tag = /<(#{TAGS}):[^:>]*(:[^>]*)?>/
@@ -134,14 +141,14 @@ module Muse
       until @scanner.eos? do
         case
         when text = @scanner.scan(tag)
-          @tokens << tks
+          @tokens << tks unless tks.empty?
           type, name, body = *text.gsub(/(^<|>$)/, '').split(':', 3)
           body.gsub!(/(^['"]|['"]$)/, '') if body
 
           @tokens << TkTag.new(type, name, body)
           tks = TkString.new
           next
-        when text = @scanner.scan(/./)
+        when text = @scanner.get_byte
           tks << text
           next
         end
