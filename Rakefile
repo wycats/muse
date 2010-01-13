@@ -42,3 +42,5 @@ else
     t.warning = true
   end
 end
+
+task :default => :spec
