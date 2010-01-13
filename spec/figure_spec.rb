@@ -1,19 +1,12 @@
 describe Muse::Preprocessor do
   processor = Muse::Preprocessor
 
-  describe "figure" do
+  describe "processes figures" do
     before do
       @muse = processor.new(:root => "/root", :chapter => 1)
     end
 
-    def figure(name, number, text = nil)
-      source = "<img src='/root/#{name}' />\n" \
-               "<p class='figure title'><a name='1-#{name}'>Figure 1.#{number}</a>"
-      source << " #{text}" if text
-      source << "</p>"
-    end
-
-    it "coverts <figure:foo.png> into an img tag" do
+    it "converts <figure:foo.png> into an img tag" do
       @muse.source = "<figure:foo.png>"
       @muse.to_html.should == figure("foo.png", 1)
     end
@@ -44,12 +37,21 @@ describe Muse::Preprocessor do
         should raise_error(Muse::InvalidReference)
     end
 
+    it "includes the line number in the exception" do
+      @muse.source = "hello\n<ref:figure:foo.png>"
+      begin
+        @muse.to_html
+      rescue Muse::InvalidReference => e
+        e.line.should == 2
+      end
+    end
+
     it "fills in the reference correctly if the reference comes after" do
       @muse.source = "<figure:foo.png><ref:figure:foo.png>"
       @muse.to_html.should == "#{figure('foo.png', 1)}Figure 1.1"
     end
 
-    it "fills int he reference correctly if the reference comes first" do
+    it "fills in the reference correctly if the reference comes first" do
       @muse.source = "<ref:figure:foo.png><figure:foo.png>"
       @muse.to_html.should == "Figure 1.1#{figure('foo.png', 1)}"
     end
