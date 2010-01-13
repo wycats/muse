@@ -1,4 +1,5 @@
 require "muse/preprocessor"
+require "muse/listing_grabber"
 require "maruku"
 
 module Muse

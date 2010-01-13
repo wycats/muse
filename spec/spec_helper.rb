@@ -1,5 +1,6 @@
 $:.push File.expand_path(File.join(File.dirname(__FILE__), "..", "lib"))
 require "muse/preprocessor"
+require "muse/listing_grabber"
 
 class Spec::ExampleGroup
   def figure(name, number, text = nil)
