@@ -1,11 +1,5 @@
 describe Muse::Preprocessor do
-  processor = Muse::Preprocessor
-
   describe "processes figures" do
-    before do
-      @muse = processor.new(:root => "/root", :chapter => 1)
-    end
-
     it "converts <figure:foo.png> into an img tag" do
       @muse.source = "<figure:foo.png>"
       @muse.to_html.should == figure("foo.png", 1)

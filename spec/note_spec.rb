@@ -1,11 +1,5 @@
 describe Muse::Preprocessor do
-  processor = Muse::Preprocessor
-
   describe "processes notes" do
-    before do
-      @muse = processor.new(:root => "/root", :chapter => 1)
-    end
-
     it "replaces single-line notes with a note div" do
       @muse.source = "<note>Hello</note>"
       @muse.to_html.should == note("Hello")

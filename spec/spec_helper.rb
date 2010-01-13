@@ -12,4 +12,8 @@ class Spec::ExampleGroup
   def note(text)
     "<div class='note Note'><p class='note_head'>Note</p><p>#{text}</p></div>"
   end
+
+  before(:each) do
+    @muse = Muse::Preprocessor.new(:root => "/root", :chapter => 1)
+  end
 end
