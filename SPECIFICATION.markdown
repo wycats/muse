@@ -8,7 +8,7 @@ The basis for Muse is Markdown, making Muse-Formatted Text (MFT) a superset of t
 
 This means that MFT will support all the typical standard Markdown structures[1] as well as the github flavor. It also supports all valid HTML tags, enabling the author to implement functional presentation elements such as tables.
 
-MFT also implements its own subset of publishing specific elements, described here in this ad-hoc spec.
+MFT also implements its own set of publishing specific elements, described here in this ad-hoc spec.
 
 ## Conversion Process
 
@@ -28,7 +28,7 @@ A chapter of Muse-formatted text begins with a heading at a single level of nest
 
 ## Sequences
 
-Chapters, Figures, Listings, Tables and other Muse constructs have incrementing numbers. For instance, the first chapter might be labeled "Chapter 1", followed by "Chapter 2". In turn, the first figure of a chapter might be labeled "Figure 1.1", followed by "Figure 1.2". 
+Chapters, Figures, Listings, Tables and other Muse constructs have incrementing numbers. For instance, the first chapter might be labeled "Chapter 1", followed by "Chapter 2". In turn, the first figure of a chapter might be labeled "Figure 1.1", followed by "Figure 1.2".
 
 The default style for sequences is 1.1, 1.2, 2.1, 2.2. The author may choose an alternate scheme for their sequences, such as A-Z, i-x, etc. However the sequence resets with each chapter: therefore if the first chapter is sequence 1, then the second is sequence 2. Figures and other constructs then are 1.1, 1.2, and reset similarly for each chapter.
 
@@ -51,3 +51,79 @@ The following Muse tag:
 MUST generate:
 
     <img src="rack.png" title="A Rack Application"><p class="figure title"><a name="1-rack.png">Figure 1.1</a> A Rack Application</p>
+
+## Notes
+
+Authors should specify notes as `<note>` tags. A valid Muse preprocessor MUST convert notes to `<div>` tags with the class `note` and a `data-type` attribute of `note`. The `<div>` MUST contain two `<p>` tags. The first `<p>` MUST have a class of `note_head` and contain the text `Note`. The second `<p>` MUST contain the text originally between the start and end of the `<note>`.
+
+### Example
+
+The following Muse tag:
+
+    <note>Hello World</note>
+
+MUST generate:
+
+    <div class='note' data-type='note'><p class='note_head'>Note</p><p>Hello World</p></div>
+
+## Other Notes
+
+Authors may specify other kinds of notes by including a single boolean flag in the `<note>` tag specifying the kind of note. For instance, an author may specify a TODO by using `<note todo>`. If an author specifies such a boolean attribute, a Muse preprocessor MUST generate a note as above, with the following changes: the `type` attribute of the `<div>` MUST be the same as the text of the boolean flag, and the contents of the first `p` MUST be the text of the boolean flag capitalized. If the flag has hyphens, a Muse preprocessor MUST replace them with spaces, and it MUST capitalize each word.
+
+A Muse preprocessor MUST treat a bare `<note>` tag as identical to `<note note>`.
+
+### Example
+
+The following Muse tag:
+
+    <note TODO>Fix this</note>
+
+MUST generate:
+
+    <div class='note' data-type='TODO'><p class='note_head'>TODO</p><p>Fix this</p></div>
+
+And the following Muse tag:
+
+    <note fix-this>Come on! Fix it!</note>
+
+MUST generate:
+
+    <div class='note' data-type='fix-this'><p class='note_head'>Fix This</p><p>Come on! Fix it!</p></div>
+
+## Listings
+
+An author can designate some text as a listing with the `<listing>` tag. A Muse preprocessor MUST insert the contents of a listing inside a `<pre>` with the `class` of `listing`. If an author specifies a `lang` attribute, a Muse processor MUST use the program specified in the metadata section to convert the contents of the `<listing>` into syntax-highlighted markup. If the author does not designate a program, a Muse processor MAY use a default program, or it MAY ignore the attribute.
+
+An author MAY also provide a git ref (as a `ref` attribute), file (as a `file` attribute), and optional start and end numbers (as a `start` attribute and an `end` attribute) instead of inserting the contents inline. If an author specifies a `ref` attribute, he MUST specify a `file` attribute. If an author specifies a `file` attribute but no `ref` attribute, a Muse preprocessor MUST use the `HEAD` ref.
+
+If an author specifies a `start` attribute, he MUST specify an `end` attribute. An author MUST NOT specify a `ref` attribute but no `file` attribute, a `start` attribute but no `end` attribute, or and `end` attribute with no `start` attribute. An author MUST NOT specify a `start` or `end` attribute if he does not specify a `file` attribute.
+
+An author may specify the location of the repository to use for listings in the metadata. If no location is specified, a Muse preprocessor SHOULD use the `src` directory under the git repository containing the text of the document.
+
+### Whitespace Handling
+
+A Muse preprocessor MUST remove any whitespace immediately following the `<listing>` tag until the first line with non-whitespace characters. A Muse preprocessor MUST remove the last newline followed by a line containing only whitespace followed by the `</listing>` closing tag.
+
+### Example
+
+The following Muse tag:
+
+    <listing>
+    class Muse
+
+    end
+    </list>
+
+SHOULD generate:
+
+    <pre>class Muse
+
+    end</list>
+
+OR an appropriately syntax highlighted version of the same content.
+
+## Metadata Section
+
+An author may specify optional metadata. A Muse preprocessor MUST use this metadata as described in other parts of this specification. A must preprocessor MAY support additional metadata for other purposes.
+
+Metadata MUST be enclosed in a `<metadata>` tag, and if supplied, author MUST place it first in a Muse document. An author may supply only one `<metadata>` section for an entire document.
