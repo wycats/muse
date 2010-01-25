@@ -40,7 +40,7 @@ Authors should use Markdown-style headings in MFT documents. A valid Muse proces
 
 ## Figures
 
-Authors should specify figures as `<img>` tags with the special boolean `muse-figure` attribute. A figure may also specify additional text in the title attribute. During preprocessing, a valid Muse preprocessor MUST add a paragraph tag containing an anchor tag. The paragraph tag MUST have the classes `figure` and `title`. The anchor tag must have the `name` `1-{image source}`. The anchor tag's contents MUST be `Figure {chapter}{separator}{figure number}` (for instance, `Figure 1.1`). The figure number is a sequence (see Sequences). If the author provides a title, a valid Muse processor MUST insert it after the closing anchor tag, followed by a single space.
+Authors should specify figures as `<img>` tags with the special boolean `muse-figure` attribute. A figure may also specify additional text in the title attribute. During preprocessing, a valid Muse preprocessor MUST add a paragraph tag containing an anchor tag. The paragraph tag MUST have the classes `figure` and `title`. The anchor tag must have the `name` `1-figure-{image source}`. The anchor tag's contents MUST be `Figure {chapter}{separator}{figure number}` (for instance, `Figure 1.1`). The figure number is a sequence (see Sequences). If the author provides a title, a valid Muse processor MUST insert it after the closing anchor tag, followed by a single space.
 
 ### Example
 
@@ -50,7 +50,7 @@ The following Muse tag:
 
 MUST generate:
 
-    <img src="rack.png" title="A Rack Application"><p class="figure title"><a name="1-rack.png">Figure 1.1</a> A Rack Application</p>
+    <img src="rack.png" title="A Rack Application"><p class="figure title"><a name="1-figure-rack.png">Figure 1.1</a> A Rack Application</p>
 
 ## Notes
 
@@ -98,7 +98,11 @@ An author MAY also provide a git ref (as a `ref` attribute), file (as a `file` a
 
 If an author specifies a `start` attribute, he MUST specify an `end` attribute. An author MUST NOT specify a `ref` attribute but no `file` attribute, a `start` attribute but no `end` attribute, or and `end` attribute with no `start` attribute. An author MUST NOT specify a `start` or `end` attribute if he does not specify a `file` attribute.
 
-An author may specify the location of the repository to use for listings in the metadata. If no location is specified, a Muse preprocessor SHOULD use the `src` directory under the git repository containing the text of the document.
+An author MAY specify the location of the repository to use for listings in the metadata. If no location is specified, a Muse preprocessor SHOULD use the `src` directory under the git repository containing the text of the document.
+
+On the line after the closing `</pre>`, a Muse preprocessor MUST insert a `<p>` tag with `listing` and `title` classes. A Muse preprocessor must insert an `<a>` tag inside the `<p>` tag. The `<a>` tag MUST have a name of `{chapter}-listing-{name}`.
+
+An author MUST specify a `name` attribute for the listing. An author MAY specify a `title` attribute for a listing. A Muse preprocessor MUST insert the `title` attribute immediately following the closing `<a>` tag, preceded by a space.
 
 ### Whitespace Handling
 
@@ -108,19 +112,36 @@ A Muse preprocessor MUST remove any whitespace immediately following the `<listi
 
 The following Muse tag:
 
-    <listing>
+    <listing name="muse" title="A Muse Class">
     class Muse
 
     end
     </list>
 
-SHOULD generate:
+MUST generate:
 
     <pre>class Muse
 
-    end</list>
+    end</pre>
+    <p class="listing title"><a name="1-listing-muse">Listing 1.1</a> A Muse Class</p>
 
 OR an appropriately syntax highlighted version of the same content.
+
+## References
+
+An author can reference any construct with a sequence with the `<ref>` tag. The ref tag MUST has `type` and `name` attributes, where `type` refers to the type of construct (such as `figure` or `listing`) and `name` refers to the name the author gave to the specific instance of the construct.
+
+### Example
+
+The following Muse tags:
+
+    <figure src="rack.png" title="A Rack Application">
+    See <ref type="figure" name="rack.png">.
+
+MUST generate:
+
+    <img src="rack.png" title="A Rack Application"><p class="figure title"><a name="1-figure-rack.png">Figure 1.1</a> A Rack Application</p>
+    See <a href="#1-figure-rack.png">Figure 1.1</a>.
 
 ## Metadata Section
 
