@@ -40,13 +40,13 @@ Authors should use Markdown-style headings in MFT documents. A valid Muse proces
 
 ## Figures
 
-Authors should specify figures as `<img>` tags with the special boolean `muse-figure` attribute. A figure may also specify additional text in the title attribute. During preprocessing, a valid Muse preprocessor MUST add a paragraph tag containing an anchor tag. The paragraph tag MUST have the classes `figure` and `title`. The anchor tag must have the `name` `1-figure-{image source}`. The anchor tag's contents MUST be `Figure {chapter}{separator}{figure number}` (for instance, `Figure 1.1`). The figure number is a sequence (see Sequences). If the author provides a title, a valid Muse processor MUST insert it after the closing anchor tag, followed by a single space.
+Authors should specify figures as `<figure>` tags. A figure may also specify additional text in the title attribute. During preprocessing, a valid Muse preprocessor MUST add a paragraph tag containing an anchor tag. The paragraph tag MUST have the classes `figure` and `title`. The anchor tag must have the `name` `1-figure-{image source}`. The anchor tag's contents MUST be `Figure {chapter}{separator}{figure number}` (for instance, `Figure 1.1`). The figure number is a sequence (see Sequences). If the author provides a title, a valid Muse processor MUST insert it after the closing anchor tag, followed by a single space.
 
 ### Example
 
 The following Muse tag:
 
-    <img muse-figure src="rack.png" title="A Rack Application">
+    <figure src="rack.png" title="A Rack Application">
 
 MUST generate:
 
